@@ -1,0 +1,91 @@
+import random
+
+class Node:
+    def __init__(self, nx):
+        self.x = nx
+        self.y = random.randint(0, 2**10)
+        self.l = None
+        self.r = None
+        self.size = 1
+
+def size(tree):
+    return tree.size if tree else 0
+
+def updateSize(t):
+    if t:
+        t.size = 1 + size(t.l) + size(t.r)
+
+def split(tree, x):
+    if not tree:
+        return None, None
+    if tree.x > x:
+        l, tree.l = split(tree.l, x)
+        r = tree
+    else:
+        tree.r, r = split(tree.r, x)
+        l = tree
+    updateSize(tree)
+    return l, r
+
+def merge(l, r):
+    if not l or not r:
+        return l or r
+    if l.y > r.y:
+      l.r = merge(l.r, r)
+      updateSize(l)
+      return l
+    else:
+      r.l = merge(l, r.l)
+      updateSize(r)
+      return r
+
+def insert(tree, newNode):
+    if not tree:
+        return newNode
+    if tree.y < newNode.y:
+        l, r = split(tree, newNode.x)
+        newNode.l, newNode.r = l, r
+        updateSize(newNode)
+        return newNode
+    else:
+        if newNode.x < tree.x:
+            tree.l = insert(tree.l, newNode)
+        else:
+            tree.r = insert(tree.r, newNode)
+        updateSize(tree)
+        return tree
+
+def remove(tree, key):
+    if not tree:
+        return tree
+    if tree.x == key:
+        return merge(tree.l, tree.r)
+    elif key < tree.x:
+        tree.l = remove(tree.l, key)
+    else:
+        tree.r = remove(tree.r, key)
+    updateSize(tree)
+    return tree
+
+def findKthMax(tree, k):
+    # print(k, " j")
+    rightsize = size(tree.r)
+    if rightsize == k - 1:
+        return tree.x
+    elif rightsize >= k:
+        return findKthMax(tree.r, k)
+    else:
+        return findKthMax(tree.l, k - rightsize - 1)
+      
+n = int(input())
+tree = None
+
+for i in range(n):
+    s, x = map(int, input().split())
+    if s == 1:
+        newNode = Node(x)
+        tree = insert(tree, newNode)
+    elif s == 0:
+        print(findKthMax(tree, x))
+    elif s == -1:
+        tree = remove(tree, x)
